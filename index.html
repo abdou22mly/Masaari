@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>المسار — سجل التقدم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --bg0:#080b16;
+    --bg1:#0e1330;
+    --violet:#7c5cff;
+    --violet-soft:#a78bfa;
+    --blue:#3fc1ff;
+    --glass:rgba(255,255,255,0.055);
+    --glass-strong:rgba(255,255,255,0.09);
+    --border:rgba(255,255,255,0.12);
+    --text:#eef0fb;
+    --text-dim:#8a92b8;
+    --text-dimmer:#5b628c;
+    --green:#4ade80;
+    --amber:#fbbf24;
+    --red:#fb7185;
+    --font-ar:'Tajawal', system-ui, sans-serif;
+    --font-num:'Space Grotesk', 'Tajawal', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font-ar);
+    background:var(--bg0);
+    color:var(--text);
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* Ambient background glow — one slow, deliberate drift */
+  .aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+  .aurora::before, .aurora::after{
+    content:''; position:absolute; width:60vmax; height:60vmax; border-radius:50%;
+    filter:blur(90px); opacity:0.35;
+  }
+  .aurora::before{
+    background:radial-gradient(circle at 30% 30%, var(--violet), transparent 70%);
+    top:-20%; right:-15%;
+    animation:driftA 26s ease-in-out infinite alternate;
+  }
+  .aurora::after{
+    background:radial-gradient(circle at 70% 70%, var(--blue), transparent 70%);
+    bottom:-25%; left:-15%;
+    animation:driftB 30s ease-in-out infinite alternate;
+  }
+  @keyframes driftA{ from{transform:translate(0,0) scale(1);} to{transform:translate(-6%,8%) scale(1.08);} }
+  @keyframes driftB{ from{transform:translate(0,0) scale(1);} to{transform:translate(6%,-6%) scale(1.1);} }
+  @media (prefers-reduced-motion: reduce){
+    .aurora::before, .aurora::after{ animation:none; }
+  }
+
+  .wrap{position:relative; z-index:1; max-width:760px; margin:0 auto; padding:20px 18px 64px;}
+
+  /* Header */
+  header{display:flex; align-items:center; justify-content:space-between; padding:6px 2px 22px;}
+  .brand{display:flex; flex-direction:column; gap:2px;}
+  .brand .name{font-size:22px; font-weight:800; letter-spacing:0.2px;}
+  .brand .sub{font-size:12.5px; color:var(--text-dim); font-weight:500;}
+  .head-actions{display:flex; align-items:center; gap:10px;}
+  .sync-dot{width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); transition:background .3s, box-shadow .3s;}
+  .sync-dot.saving{background:var(--amber); box-shadow:0 0 8px var(--amber);}
+  .sync-dot.err{background:var(--red); box-shadow:0 0 8px var(--red);}
+  .icon-btn{
+    width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:var(--glass); border:1px solid var(--border); color:var(--text-dim); cursor:pointer;
+    transition:background .2s, color .2s, transform .15s;
+  }
+  .icon-btn:hover{background:var(--glass-strong); color:var(--text);}
+  .icon-btn:active{transform:scale(0.94);}
+
+  /* Glass card base */
+  .glass{
+    background:var(--glass);
+    border:1px solid var(--border);
+    border-radius:22px;
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+  }
+
+  /* Hero */
+  .hero{padding:26px 24px; margin-bottom:22px; position:relative; overflow:hidden;}
+  .hero::before{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(124,92,255,0.16), rgba(63,193,255,0.08) 60%, transparent);
+    pointer-events:none;
+  }
+  .hero-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:relative;}
+  .hero-label{font-size:13px; color:var(--text-dim); font-weight:500; margin-bottom:6px;}
+  .hero-value{display:flex; align-items:baseline; gap:8px; direction:ltr;}
+  .hero-value .num{font-family:var(--font-num); font-size:56px; font-weight:700; line-height:1; background:linear-gradient(90deg, #fff, var(--violet-soft)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .hero-value .unit{font-size:16px; color:var(--text-dim); font-weight:600;}
+  .delta-chip{
+    display:inline-flex; align-items:center; gap:5px; margin-top:10px; padding:5px 12px;
+    border-radius:100px; font-size:13px; font-weight:600; font-family:var(--font-num); direction:ltr;
+  }
+  .delta-chip.up{background:rgba(74,222,128,0.14); color:var(--green);}
+  .delta-chip.down{background:rgba(251,113,133,0.14); color:var(--red);}
+  .delta-chip.flat{background:var(--glass-strong); color:var(--text-dim);}
+  .spark{position:relative; z-index:1; margin-top:16px; width:100%; height:52px;}
+  .hero-empty{color:var(--text-dim); font-size:14px; line-height:1.9;}
+
+  .add-weight-row{display:flex; gap:8px; margin-top:18px; position:relative; z-index:1;}
+  .add-weight-row input{
+    flex:1; min-width:0; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:12px;
+    padding:11px 13px; color:var(--text); font-family:var(--font-num); font-size:15px; direction:ltr; text-align:center;
+  }
+  .add-weight-row input:focus{outline:none; border-color:var(--violet-soft);}
+  .add-weight-row input[type="date"]{flex:1.1; direction:rtl; text-align:right; font-family:var(--font-ar); font-size:13.5px;}
+  .btn-primary{
+    background:linear-gradient(135deg, var(--violet), var(--blue)); color:#fff; border:none; border-radius:12px;
+    padding:0 20px; font-family:var(--font-ar); font-weight:700; font-size:14px; cursor:pointer;
+    transition:transform .15s, opacity .2s; white-space:nowrap;
+  }
+  .btn-primary:hover{opacity:0.92;}
+  .btn-primary:active{transform:scale(0.96);}
+
+  .weight-history{margin-top:16px; position:relative; z-index:1;}
+  .weight-history summary{cursor:pointer; font-size:13px; color:var(--text-dim); font-weight:600; list-style:none; display:flex; align-items:center; gap:6px; user-select:none;}
+  .weight-history summary::-webkit-details-marker{display:none;}
+  .weight-history summary .chev{transition:transform .2s;}
+  .weight-history[open] summary .chev{transform:rotate(90deg);}
+  .wh-list{display:flex; flex-direction:column; gap:2px; margin-top:10px; max-height:220px; overflow-y:auto;}
+  .wh-row{display:flex; align-items:center; justify-content:space-between; padding:9px 4px; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13.5px;}
+  .wh-row .d{color:var(--text-dim);}
+  .wh-row .v{font-family:var(--font-num); font-weight:600; direction:ltr;}
+  .wh-row .del{opacity:0; color:var(--text-dimmer); cursor:pointer; padding:4px; font-size:12px;}
+  .wh-row:hover .del{opacity:1;}
+
+  /* Section heading */
+  .section-head{display:flex; align-items:center; justify-content:space-between; margin:8px 4px 14px;}
+  .section-head h2{font-size:17px; font-weight:800;}
+  .add-habit-btn{
+    width:36px; height:36px; border-radius:11px; border:1px solid var(--border); background:var(--glass);
+    color:var(--violet-soft); font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:background .2s, transform .15s;
+  }
+  .add-habit-btn:hover{background:var(--glass-strong);}
+  .add-habit-btn:active{transform:scale(0.92);}
+
+  .empty-state{
+    text-align:center; padding:34px 20px; color:var(--text-dim); font-size:14px; line-height:1.9;
+  }
+  .empty-state .big{font-size:34px; margin-bottom:8px;}
+
+  /* Habit cards */
+  .habit-card{padding:18px 18px 16px; margin-bottom:14px;}
+  .habit-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
+  .habit-name{font-size:15.5px; font-weight:700;}
+  .habit-range{font-size:11.5px; color:var(--text-dimmer); font-family:var(--font-num); direction:ltr; text-align:left;}
+  .habit-progress-wrap{display:flex; align-items:center; gap:10px; margin:10px 0 14px;}
+  .habit-bar{flex:1; height:6px; border-radius:100px; background:rgba(255,255,255,0.08); overflow:hidden;}
+  .habit-bar-fill{height:100%; border-radius:100px; background:linear-gradient(90deg, var(--violet), var(--blue)); transition:width .4s ease;}
+  .habit-pct{font-size:12px; color:var(--text-dim); font-family:var(--font-num); font-weight:600; white-space:nowrap;}
+  .habit-del{color:var(--text-dimmer); cursor:pointer; font-size:12px; padding:4px 6px;}
+  .habit-del:hover{color:var(--red);}
+  .days-grid{display:flex; flex-wrap:wrap; gap:6px;}
+  .day-box{
+    width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-num); font-size:12.5px; font-weight:600; cursor:pointer; user-select:none;
+    background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-dim);
+    transition:background .18s, border-color .18s, color .18s, transform .1s;
+  }
+  .day-box:active{transform:scale(0.9);}
+  .day-box.done{background:linear-gradient(135deg, var(--violet), var(--blue)); border-color:transparent; color:#fff;}
+  .day-box.future{opacity:0.35; cursor:not-allowed;}
+  .day-box.today{box-shadow:0 0 0 2px var(--violet-soft) inset;}
+
+  footer{text-align:center; margin-top:30px; font-size:11.5px; color:var(--text-dimmer);}
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(4,6,16,0.6); backdrop-filter:blur(4px); z-index:50;
+    display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  .overlay.open{opacity:1; pointer-events:auto;}
+  @media (min-width:640px){ .overlay{align-items:center;} }
+  .modal{
+    width:100%; max-width:420px; background:#131a30; border:1px solid var(--border); border-radius:22px 22px 0 0;
+    padding:22px 20px 26px; transform:translateY(16px); transition:transform .25s ease;
+  }
+  @media (min-width:640px){ .modal{border-radius:22px; transform:translateY(0) scale(0.97);} }
+  .overlay.open .modal{transform:translateY(0) scale(1);}
+  .modal h3{font-size:16px; font-weight:800; margin-bottom:16px;}
+  .field{margin-bottom:13px;}
+  .field label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+  .field input{
+    width:100%; background:rgba(0,0,0,0.28); border:1px solid var(--border); border-radius:12px;
+    padding:11px 13px; color:var(--text); font-family:var(--font-ar); font-size:14.5px;
+  }
+  .field input:focus{outline:none; border-color:var(--violet-soft);}
+  .field-row{display:flex; gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-actions{display:flex; gap:10px; margin-top:18px;}
+  .btn-ghost{
+    flex:1; background:var(--glass); border:1px solid var(--border); color:var(--text-dim); border-radius:12px;
+    padding:12px; font-family:var(--font-ar); font-weight:700; font-size:14px; cursor:pointer;
+  }
+  .modal-actions .btn-primary{flex:1.4; padding:12px;}
+
+  /* Settings panel content */
+  .device-code{
+    font-family:var(--font-num); direction:ltr; text-align:center; background:rgba(0,0,0,0.3);
+    border:1px dashed var(--border); border-radius:12px; padding:12px; font-size:13px; word-break:break-all;
+    color:var(--violet-soft); margin-bottom:10px; cursor:pointer;
+  }
+  .hint{font-size:12px; color:var(--text-dimmer); line-height:1.8; margin-bottom:14px;}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); z-index:60;
+    background:#1a2140; border:1px solid var(--border); color:var(--text); padding:11px 20px; border-radius:100px;
+    font-size:13px; font-weight:600; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="name">المسار</div>
+      <div class="sub">سجل تقدمك يوم بيوم</div>
+    </div>
+    <div class="head-actions">
+      <div class="sync-dot" id="syncDot" title="حالة الحفظ"></div>
+      <div class="icon-btn" id="settingsBtn" title="الإعدادات">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero: weight -->
+  <div class="glass hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-label">الوزن الحالي</div>
+        <div id="heroValueWrap"></div>
+      </div>
+    </div>
+    <svg class="spark" id="sparkSvg" viewBox="0 0 300 52" preserveAspectRatio="none"></svg>
+
+    <div class="add-weight-row">
+      <input type="date" id="weightDate">
+      <input type="number" step="0.1" inputmode="decimal" id="weightVal" placeholder="كغ">
+      <button class="btn-primary" id="addWeightBtn">إضافة</button>
+    </div>
+
+    <details class="weight-history" id="whDetails">
+      <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg> السجل الكامل</summary>
+      <div class="wh-list" id="whList"></div>
+    </details>
+  </div>
+
+  <!-- Habits -->
+  <div class="section-head">
+    <h2>العادات</h2>
+    <div class="add-habit-btn" id="addHabitBtn">+</div>
+  </div>
+  <div id="habitsList"></div>
+
+  <footer id="footerNote">جاري الاتصال بقاعدة البيانات…</footer>
+</div>
+
+<!-- Add weight not needed as modal, inline above -->
+
+<!-- Add habit modal -->
+<div class="overlay" id="habitOverlay">
+  <div class="modal">
+    <h3>عادة جديدة</h3>
+    <div class="field">
+      <label>اسم العادة</label>
+      <input type="text" id="habitName" placeholder="مثال: شرب 3 لتر ماء">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>من تاريخ</label>
+        <input type="date" id="habitStart">
+      </div>
+      <div class="field">
+        <label>إلى تاريخ</label>
+        <input type="date" id="habitEnd">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="habitCancel">إلغاء</button>
+      <button class="btn-primary" id="habitSave">حفظ العادة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings / device sync modal -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <h3>المزامنة بين الأجهزة</h3>
+    <div class="hint">بياناتك محفوظة برمز جهاز خاص بك. انسخ هذا الرمز واستخدمه على أي جهاز آخر لترى نفس بياناتك هناك.</div>
+    <div class="device-code" id="deviceCodeBox" title="اضغط للنسخ"></div>
+    <div class="field" style="margin-top:16px;">
+      <label>لديك رمز من جهاز آخر؟ الصقه هنا</label>
+      <input type="text" id="importCode" placeholder="الصق الرمز هنا">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="settingsClose">إغلاق</button>
+      <button class="btn-primary" id="importCodeBtn">استخدام هذا الرمز</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Supabase setup ----------
+  const SUPABASE_URL = "https://ngoglampynbcyfzdovdw.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nb2dsYW1weW5iY3lmemRvdmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0OTQ5NjgsImV4cCI6MjEwNTA3MDk2OH0._NkoVLw4vp-4YZLPKv0qNtkT7sWfzs7nCvSQ4Rzq8j8";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const LS_KEY = "masar_device_id";
+
+  function uuid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+      const r = Math.random()*16|0, v = c === "x" ? r : (r&0x3|0x8);
+      return v.toString(16);
+    });
+  }
+
+  let deviceId = localStorage.getItem(LS_KEY);
+  if (!deviceId){
+    deviceId = uuid();
+    localStorage.setItem(LS_KEY, deviceId);
+  }
+
+  let state = { weight_entries: [], habits: [] };
+  let saveTimer = null;
+  let rowExists = false;
+
+  // ---------- DOM refs ----------
+  const $ = id => document.getElementById(id);
+  const syncDot = $("syncDot");
+  const footerNote = $("footerNote");
+  const toastEl = $("toast");
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    setTimeout(()=> toastEl.classList.remove("show"), 2200);
+  }
+
+  function todayStr(){
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+
+  // ---------- Load & Save ----------
+  async function loadData(){
+    syncDot.className = "sync-dot saving";
+    try{
+      const { data, error } = await sb.from("user_data").select("*").eq("device_id", deviceId).maybeSingle();
+      if (error) throw error;
+      if (data){
+        state.weight_entries = data.weight_entries || [];
+        state.habits = data.habits || [];
+        rowExists = true;
+      } else {
+        rowExists = false;
+      }
+      syncDot.className = "sync-dot";
+      footerNote.textContent = "متصل — يُحفظ تلقائياً";
+      render();
+    } catch(e){
+      console.error(e);
+      syncDot.className = "sync-dot err";
+      footerNote.textContent = "تعذّر الاتصال بقاعدة البيانات — سيُعاد المحاولة";
+      render();
+    }
+  }
+
+  function scheduleSave(){
+    syncDot.className = "sync-dot saving";
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNow, 700);
+  }
+
+  async function saveNow(){
+    try{
+      const payload = {
+        device_id: deviceId,
+        weight_entries: state.weight_entries,
+        habits: state.habits,
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await sb.from("user_data").upsert(payload, { onConflict: "device_id" });
+      if (error) throw error;
+      rowExists = true;
+      syncDot.className = "sync-dot";
+      footerNote.textContent = "آخر حفظ: " + new Date().toLocaleTimeString("ar-DZ", {hour:"2-digit", minute:"2-digit"});
+    } catch(e){
+      console.error(e);
+      syncDot.className = "sync-dot err";
+      footerNote.textContent = "تعذّر الحفظ — سيُعاد المحاولة تلقائياً";
+      saveTimer = setTimeout(saveNow, 4000);
+    }
+  }
+
+  // ---------- Weight ----------
+  function sortedWeights(){
+    return [...state.weight_entries].sort((a,b)=> a.date.localeCompare(b.date));
+  }
+
+  function renderHero(){
+    const entries = sortedWeights();
+    const wrap = $("heroValueWrap");
+    if (entries.length === 0){
+      wrap.innerHTML = `<div class="hero-empty">أضف أول قياس لوزنك لتبدأ رؤية تقدمك هنا.</div>`;
+      $("sparkSvg").innerHTML = "";
+      return;
+    }
+    const last = entries[entries.length-1];
+    const prev = entries.length > 1 ? entries[entries.length-2] : null;
+    let deltaHtml = "";
+    if (prev){
+      const diff = +(last.weight - prev.weight).toFixed(1);
+      const cls = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
+      const arrow = diff > 0 ? "▲" : diff < 0 ? "▼" : "—";
+      deltaHtml = `<div class="delta-chip ${cls}">${arrow} ${Math.abs(diff)} كغ منذ آخر قياس</div>`;
+    }
+    wrap.innerHTML = `
+      <div class="hero-value"><span class="num">${last.weight}</span><span class="unit">كغ</span></div>
+      ${deltaHtml}
+    `;
+    renderSpark(entries);
+  }
+
+  function renderSpark(entries){
+    const svg = $("sparkSvg");
+    if (entries.length < 2){ svg.innerHTML = ""; return; }
+    const last12 = entries.slice(-14);
+    const ws = last12.map(e=>e.weight);
+    const min = Math.min(...ws), max = Math.max(...ws);
+    const range = (max - min) || 1;
+    const W = 300, H = 52, pad = 6;
+    const pts = last12.map((e,i)=>{
+      const x = pad + (i/(last12.length-1)) * (W - pad*2);
+      const y = H - pad - ((e.weight - min)/range) * (H - pad*2);
+      return [x,y];
+    });
+    const path = pts.map((p,i)=> (i===0?"M":"L") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+    const areaPath = path + ` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z`;
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#7c5cff" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#7c5cff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#sg)" stroke="none"/>
+      <path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="3.5" fill="#3fc1ff"/>
+    `;
+  }
+
+  function renderWeightHistory(){
+    const list = $("whList");
+    const entries = [...sortedWeights()].reverse();
+    if (entries.length === 0){
+      list.innerHTML = `<div class="hint">لا يوجد سجل بعد.</div>`;
+      return;
+    }
+    list.innerHTML = entries.map(e => `
+      <div class="wh-row" data-date="${e.date}">
+        <span class="d">${formatDate(e.date)}</span>
+        <span class="v">${e.weight} كغ</span>
+        <span class="del" data-del="${e.date}">حذف</span>
+      </div>
+    `).join("");
+    list.querySelectorAll("[data-del]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const d = el.getAttribute("data-del");
+        state.weight_entries = state.weight_entries.filter(x=>x.date !== d);
+        render(); scheduleSave();
+      });
+    });
+  }
+
+  function formatDate(iso){
+    const d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString("ar-DZ", { day:"numeric", month:"short", year:"numeric" });
+  }
+
+  $("weightDate").value = todayStr();
+  $("addWeightBtn").addEventListener("click", ()=>{
+    const date = $("weightDate").value;
+    const val = parseFloat($("weightVal").value);
+    if (!date || isNaN(val) || val <= 0){ toast("أدخل تاريخاً ووزناً صحيحين"); return; }
+    state.weight_entries = state.weight_entries.filter(e=>e.date !== date);
+    state.weight_entries.push({ date, weight: val });
+    $("weightVal").value = "";
+    render(); scheduleSave();
+    toast("تمت إضافة الوزن");
+  });
+
+  // ---------- Habits ----------
+  function dateRange(start, end){
+    const out = [];
+    let d = new Date(start + "T00:00:00");
+    const endD = new Date(end + "T00:00:00");
+    while (d <= endD){
+      out.push(d.toISOString().slice(0,10));
+      d.setDate(d.getDate()+1);
+    }
+    return out;
+  }
+
+  function renderHabits(){
+    const container = $("habitsList");
+    if (!state.habits || state.habits.length === 0){
+      container.innerHTML = `
+        <div class="glass empty-state">
+          <div class="big">🌱</div>
+          اضغط + لإضافة أول عادة تريد متابعتها.
+        </div>`;
+      return;
+    }
+    const today = todayStr();
+    container.innerHTML = state.habits.map(h=>{
+      const days = dateRange(h.start, h.end);
+      const doneCount = days.filter(d => h.done && h.done[d]).length;
+      const pct = Math.round((doneCount/days.length)*100) || 0;
+      const boxes = days.map(d=>{
+        const dayNum = new Date(d + "T00:00:00").getDate();
+        const isDone = !!(h.done && h.done[d]);
+        const isFuture = d > today;
+        const isToday = d === today;
+        return `<div class="day-box ${isDone?"done":""} ${isFuture?"future":""} ${isToday?"today":""}"
+                     data-habit="${h.id}" data-date="${d}" ${isFuture?"":"data-toggle=\"1\""}>${dayNum}</div>`;
+      }).join("");
+      return `
+        <div class="glass habit-card">
+          <div class="habit-head">
+            <div class="habit-name">${escapeHtml(h.name)}</div>
+            <div class="habit-del" data-delhabit="${h.id}">حذف</div>
+          </div>
+          <div class="habit-range">${formatDate(h.start)} → ${formatDate(h.end)}</div>
+          <div class="habit-progress-wrap">
+            <div class="habit-bar"><div class="habit-bar-fill" style="width:${pct}%"></div></div>
+            <div class="habit-pct">${doneCount}/${days.length}</div>
+          </div>
+          <div class="days-grid">${boxes}</div>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll("[data-toggle]").forEach(box=>{
+      box.addEventListener("click", ()=>{
+        const hid = box.getAttribute("data-habit");
+        const date = box.getAttribute("data-date");
+        const habit = state.habits.find(h=>h.id === hid);
+        if (!habit) return;
+        habit.done = habit.done || {};
+        habit.done[date] = !habit.done[date];
+        renderHabits(); scheduleSave();
+      });
+    });
+    container.querySelectorAll("[data-delhabit]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const hid = el.getAttribute("data-delhabit");
+        state.habits = state.habits.filter(h=>h.id !== hid);
+        renderHabits(); scheduleSave();
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  // Add habit modal
+  const habitOverlay = $("habitOverlay");
+  $("addHabitBtn").addEventListener("click", ()=>{
+    $("habitName").value = "";
+    $("habitStart").value = todayStr();
+    $("habitEnd").value = todayStr();
+    habitOverlay.classList.add("open");
+  });
+  $("habitCancel").addEventListener("click", ()=> habitOverlay.classList.remove("open"));
+  habitOverlay.addEventListener("click", e=>{ if (e.target === habitOverlay) habitOverlay.classList.remove("open"); });
+  $("habitSave").addEventListener("click", ()=>{
+    const name = $("habitName").value.trim();
+    const start = $("habitStart").value;
+    const end = $("habitEnd").value;
+    if (!name || !start || !end || end < start){ toast("تحقق من الاسم والتواريخ"); return; }
+    state.habits.push({ id: uuid(), name, start, end, done:{} });
+    habitOverlay.classList.remove("open");
+    renderHabits(); scheduleSave();
+    toast("تمت إضافة العادة");
+  });
+
+  // Settings / sync modal
+  const settingsOverlay = $("settingsOverlay");
+  $("settingsBtn").addEventListener("click", ()=>{
+    $("deviceCodeBox").textContent = deviceId;
+    $("importCode").value = "";
+    settingsOverlay.classList.add("open");
+  });
+  $("settingsClose").addEventListener("click", ()=> settingsOverlay.classList.remove("open"));
+  settingsOverlay.addEventListener("click", e=>{ if (e.target === settingsOverlay) settingsOverlay.classList.remove("open"); });
+  $("deviceCodeBox").addEventListener("click", ()=>{
+    navigator.clipboard?.writeText(deviceId).then(()=> toast("تم نسخ الرمز"));
+  });
+  $("importCodeBtn").addEventListener("click", async ()=>{
+    const code = $("importCode").value.trim();
+    if (!code){ toast("الصق رمزاً صحيحاً"); return; }
+    deviceId = code;
+    localStorage.setItem(LS_KEY, deviceId);
+    settingsOverlay.classList.remove("open");
+    toast("جاري تحميل بيانات هذا الرمز…");
+    await loadData();
+  });
+
+  // ---------- Render all ----------
+  function render(){
+    renderHero();
+    renderWeightHistory();
+    renderHabits();
+  }
+
+  loadData();
+})();
+</script>
+</body>
+</html>
