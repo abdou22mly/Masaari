@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>المسار — سجل التقدم</title>
+<title id="pageTitle">المسار — سجل التقدم</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c5cff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="المسار">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -39,7 +47,6 @@
     -webkit-font-smoothing:antialiased;
   }
 
-  /* Ambient background glow — one slow, deliberate drift */
   .aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
   .aurora::before, .aurora::after{
     content:''; position:absolute; width:60vmax; height:60vmax; border-radius:50%;
@@ -47,12 +54,12 @@
   }
   .aurora::before{
     background:radial-gradient(circle at 30% 30%, var(--violet), transparent 70%);
-    top:-20%; right:-15%;
+    top:-20%; inset-inline-end:-15%;
     animation:driftA 26s ease-in-out infinite alternate;
   }
   .aurora::after{
     background:radial-gradient(circle at 70% 70%, var(--blue), transparent 70%);
-    bottom:-25%; left:-15%;
+    bottom:-25%; inset-inline-start:-15%;
     animation:driftB 30s ease-in-out infinite alternate;
   }
   @keyframes driftA{ from{transform:translate(0,0) scale(1);} to{transform:translate(-6%,8%) scale(1.08);} }
@@ -63,7 +70,6 @@
 
   .wrap{position:relative; z-index:1; max-width:760px; margin:0 auto; padding:20px 18px 64px;}
 
-  /* Header */
   header{display:flex; align-items:center; justify-content:space-between; padding:6px 2px 22px;}
   .brand{display:flex; flex-direction:column; gap:2px;}
   .brand .name{font-size:22px; font-weight:800; letter-spacing:0.2px;}
@@ -79,8 +85,15 @@
   }
   .icon-btn:hover{background:var(--glass-strong); color:var(--text);}
   .icon-btn:active{transform:scale(0.94);}
+  .lang-btn{
+    height:38px; padding:0 13px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:var(--glass); border:1px solid var(--border); color:var(--text-dim); cursor:pointer;
+    font-family:var(--font-num); font-weight:700; font-size:12.5px; letter-spacing:0.5px;
+    transition:background .2s, color .2s, transform .15s;
+  }
+  .lang-btn:hover{background:var(--glass-strong); color:var(--text);}
+  .lang-btn:active{transform:scale(0.94);}
 
-  /* Glass card base */
   .glass{
     background:var(--glass);
     border:1px solid var(--border);
@@ -89,7 +102,6 @@
     -webkit-backdrop-filter:blur(18px);
   }
 
-  /* Hero */
   .hero{padding:26px 24px; margin-bottom:22px; position:relative; overflow:hidden;}
   .hero::before{
     content:''; position:absolute; inset:0;
@@ -118,6 +130,7 @@
   }
   .add-weight-row input:focus{outline:none; border-color:var(--violet-soft);}
   .add-weight-row input[type="date"]{flex:1.1; direction:rtl; text-align:right; font-family:var(--font-ar); font-size:13.5px;}
+  html[dir="ltr"] .add-weight-row input[type="date"]{direction:ltr; text-align:left;}
   .btn-primary{
     background:linear-gradient(135deg, var(--violet), var(--blue)); color:#fff; border:none; border-radius:12px;
     padding:0 20px; font-family:var(--font-ar); font-weight:700; font-size:14px; cursor:pointer;
@@ -138,7 +151,6 @@
   .wh-row .del{opacity:0; color:var(--text-dimmer); cursor:pointer; padding:4px; font-size:12px;}
   .wh-row:hover .del{opacity:1;}
 
-  /* Section heading */
   .section-head{display:flex; align-items:center; justify-content:space-between; margin:8px 4px 14px;}
   .section-head h2{font-size:17px; font-weight:800;}
   .add-habit-btn{
@@ -154,7 +166,6 @@
   }
   .empty-state .big{font-size:34px; margin-bottom:8px;}
 
-  /* Habit cards */
   .habit-card{padding:18px 18px 16px; margin-bottom:14px;}
   .habit-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
   .habit-name{font-size:15.5px; font-weight:700;}
@@ -173,13 +184,27 @@
     transition:background .18s, border-color .18s, color .18s, transform .1s;
   }
   .day-box:active{transform:scale(0.9);}
-  .day-box.done{background:linear-gradient(135deg, var(--violet), var(--blue)); border-color:transparent; color:#fff;}
+  .day-box.done{background:rgba(74,222,128,0.16); border-color:var(--green); color:var(--green);}
+  .day-box.notdone{background:rgba(251,113,133,0.14); border-color:var(--red); color:var(--red);}
   .day-box.future{opacity:0.35; cursor:not-allowed;}
   .day-box.today{box-shadow:0 0 0 2px var(--violet-soft) inset;}
 
+  .day-popover{
+    position:fixed; z-index:70; background:#151c38; border:1px solid var(--border); border-radius:14px;
+    padding:6px; display:flex; flex-direction:column; gap:4px; box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    min-width:140px; animation:popIn .12s ease-out;
+  }
+  @keyframes popIn{ from{opacity:0; transform:scale(0.92);} to{opacity:1; transform:scale(1);} }
+  .day-popover button{
+    background:transparent; border:none; color:var(--text); font-family:var(--font-ar); font-size:13.5px;
+    font-weight:600; padding:9px 12px; border-radius:9px; cursor:pointer; text-align:start; display:flex; align-items:center; gap:8px;
+  }
+  .day-popover button:hover{background:var(--glass-strong);}
+  .day-popover button.choice-done{color:var(--green);}
+  .day-popover button.choice-undone{color:var(--red);}
+
   footer{text-align:center; margin-top:30px; font-size:11.5px; color:var(--text-dimmer);}
 
-  /* Modal */
   .overlay{
     position:fixed; inset:0; background:rgba(4,6,16,0.6); backdrop-filter:blur(4px); z-index:50;
     display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s;
@@ -209,7 +234,6 @@
   }
   .modal-actions .btn-primary{flex:1.4; padding:12px;}
 
-  /* Settings panel content */
   .device-code{
     font-family:var(--font-num); direction:ltr; text-align:center; background:rgba(0,0,0,0.3);
     border:1px dashed var(--border); border-radius:12px; padding:12px; font-size:13px; word-break:break-all;
@@ -230,22 +254,22 @@
 
   <header>
     <div class="brand">
-      <div class="name">المسار</div>
-      <div class="sub">سجل تقدمك يوم بيوم</div>
+      <div class="name" data-i18n="appName">المسار</div>
+      <div class="sub" data-i18n="appSub">سجل تقدمك يوم بيوم</div>
     </div>
     <div class="head-actions">
+      <div class="lang-btn" id="langBtn" title="Language">EN</div>
       <div class="sync-dot" id="syncDot" title="حالة الحفظ"></div>
-      <div class="icon-btn" id="settingsBtn" title="الإعدادات">
+      <div class="icon-btn" id="settingsBtn" title="Settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </div>
     </div>
   </header>
 
-  <!-- Hero: weight -->
   <div class="glass hero">
     <div class="hero-top">
       <div>
-        <div class="hero-label">الوزن الحالي</div>
+        <div class="hero-label" data-i18n="currentWeight">الوزن الحالي</div>
         <div id="heroValueWrap"></div>
       </div>
     </div>
@@ -253,19 +277,18 @@
 
     <div class="add-weight-row">
       <input type="date" id="weightDate">
-      <input type="number" step="0.1" inputmode="decimal" id="weightVal" placeholder="كغ">
-      <button class="btn-primary" id="addWeightBtn">إضافة</button>
+      <input type="number" step="0.1" inputmode="decimal" id="weightVal" data-i18n-ph="kgPlaceholder" placeholder="كغ">
+      <button class="btn-primary" id="addWeightBtn" data-i18n="add">إضافة</button>
     </div>
 
     <details class="weight-history" id="whDetails">
-      <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg> السجل الكامل</summary>
+      <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg> <span data-i18n="fullHistory">السجل الكامل</span></summary>
       <div class="wh-list" id="whList"></div>
     </details>
   </div>
 
-  <!-- Habits -->
   <div class="section-head">
-    <h2>العادات</h2>
+    <h2 data-i18n="habitsTitle">العادات</h2>
     <div class="add-habit-btn" id="addHabitBtn">+</div>
   </div>
   <div id="habitsList"></div>
@@ -273,46 +296,42 @@
   <footer id="footerNote">جاري الاتصال بقاعدة البيانات…</footer>
 </div>
 
-<!-- Add weight not needed as modal, inline above -->
-
-<!-- Add habit modal -->
 <div class="overlay" id="habitOverlay">
   <div class="modal">
-    <h3>عادة جديدة</h3>
+    <h3 data-i18n="newHabit">عادة جديدة</h3>
     <div class="field">
-      <label>اسم العادة</label>
-      <input type="text" id="habitName" placeholder="مثال: شرب 3 لتر ماء">
+      <label data-i18n="habitNameLabel">اسم العادة</label>
+      <input type="text" id="habitName" data-i18n-ph="habitNamePh" placeholder="مثال: شرب 3 لتر ماء">
     </div>
     <div class="field-row">
       <div class="field">
-        <label>من تاريخ</label>
+        <label data-i18n="fromDate">من تاريخ</label>
         <input type="date" id="habitStart">
       </div>
       <div class="field">
-        <label>إلى تاريخ</label>
+        <label data-i18n="toDate">إلى تاريخ</label>
         <input type="date" id="habitEnd">
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn-ghost" id="habitCancel">إلغاء</button>
-      <button class="btn-primary" id="habitSave">حفظ العادة</button>
+      <button class="btn-ghost" id="habitCancel" data-i18n="cancel">إلغاء</button>
+      <button class="btn-primary" id="habitSave" data-i18n="saveHabit">حفظ العادة</button>
     </div>
   </div>
 </div>
 
-<!-- Settings / device sync modal -->
 <div class="overlay" id="settingsOverlay">
   <div class="modal">
-    <h3>المزامنة بين الأجهزة</h3>
-    <div class="hint">بياناتك محفوظة برمز جهاز خاص بك. انسخ هذا الرمز واستخدمه على أي جهاز آخر لترى نفس بياناتك هناك.</div>
-    <div class="device-code" id="deviceCodeBox" title="اضغط للنسخ"></div>
+    <h3 data-i18n="settingsTitle">المزامنة بين الأجهزة</h3>
+    <div class="hint" data-i18n="settingsHint">بياناتك محفوظة برمز جهاز خاص بك. انسخ هذا الرمز واستخدمه على أي جهاز آخر لترى نفس بياناتك هناك.</div>
+    <div class="device-code" id="deviceCodeBox" title="Copy"></div>
     <div class="field" style="margin-top:16px;">
-      <label>لديك رمز من جهاز آخر؟ الصقه هنا</label>
-      <input type="text" id="importCode" placeholder="الصق الرمز هنا">
+      <label data-i18n="importLabel">لديك رمز من جهاز آخر؟ الصقه هنا</label>
+      <input type="text" id="importCode" data-i18n-ph="importPh" placeholder="الصق الرمز هنا">
     </div>
     <div class="modal-actions">
-      <button class="btn-ghost" id="settingsClose">إغلاق</button>
-      <button class="btn-primary" id="importCodeBtn">استخدام هذا الرمز</button>
+      <button class="btn-ghost" id="settingsClose" data-i18n="close">إغلاق</button>
+      <button class="btn-primary" id="importCodeBtn" data-i18n="useCode">استخدام هذا الرمز</button>
     </div>
   </div>
 </div>
@@ -322,6 +341,70 @@
 <script>
 (function(){
   "use strict";
+
+  // ---------- i18n ----------
+  const DICT = {
+    ar: {
+      appName:"المسار", appSub:"سجل تقدمك يوم بيوم",
+      currentWeight:"الوزن الحالي", add:"إضافة", fullHistory:"السجل الكامل",
+      kgPlaceholder:"كغ", kg:"كغ", sinceLast:"منذ آخر قياس",
+      heroEmpty:"أضف أول قياس لوزنك لتبدأ رؤية تقدمك هنا.",
+      noHistory:"لا يوجد سجل بعد.", delete:"حذف",
+      habitsTitle:"العادات", noHabitsText:"اضغط + لإضافة أول عادة تريد متابعتها.",
+      newHabit:"عادة جديدة", habitNameLabel:"اسم العادة", habitNamePh:"مثال: شرب 3 لتر ماء",
+      fromDate:"من تاريخ", toDate:"إلى تاريخ", cancel:"إلغاء", saveHabit:"حفظ العادة",
+      checkNameDates:"تحقق من الاسم والتواريخ", habitAdded:"تمت إضافة العادة",
+      weightAdded:"تمت إضافة الوزن", enterValidDateWeight:"أدخل تاريخاً ووزناً صحيحين",
+      settingsTitle:"المزامنة بين الأجهزة",
+      settingsHint:"بياناتك محفوظة برمز جهاز خاص بك. انسخ هذا الرمز واستخدمه على أي جهاز آخر لترى نفس بياناتك هناك.",
+      importLabel:"لديك رمز من جهاز آخر؟ الصقه هنا", importPh:"الصق الرمز هنا",
+      close:"إغلاق", useCode:"استخدام هذا الرمز", codeCopied:"تم نسخ الرمز",
+      enterValidCode:"الصق رمزاً صحيحاً", loadingCode:"جاري تحميل بيانات هذا الرمز…",
+      connected:"متصل — يُحفظ تلقائياً", connectFail:"تعذّر الاتصال بقاعدة البيانات — سيُعاد المحاولة",
+      saveFail:"تعذّر الحفظ — سيُعاد المحاولة تلقائياً", lastSaved:"آخر حفظ",
+      connecting:"جاري الاتصال بقاعدة البيانات…",
+      markDone:"تمت", markNotDone:"لم تتم", pageTitle:"المسار — سجل التقدم",
+      dateLocale:"ar-DZ"
+    },
+    en: {
+      appName:"Masar", appSub:"Track your progress, day by day",
+      currentWeight:"Current weight", add:"Add", fullHistory:"Full history",
+      kgPlaceholder:"kg", kg:"kg", sinceLast:"since last measurement",
+      heroEmpty:"Add your first weight entry to start seeing your progress here.",
+      noHistory:"No entries yet.", delete:"Delete",
+      habitsTitle:"Habits", noHabitsText:"Tap + to add the first habit you want to track.",
+      newHabit:"New habit", habitNameLabel:"Habit name", habitNamePh:"e.g. Drink 3L of water",
+      fromDate:"From date", toDate:"To date", cancel:"Cancel", saveHabit:"Save habit",
+      checkNameDates:"Check the name and dates", habitAdded:"Habit added",
+      weightAdded:"Weight added", enterValidDateWeight:"Enter a valid date and weight",
+      settingsTitle:"Sync across devices",
+      settingsHint:"Your data is saved under a personal device code. Copy it and use it on another device to see the same data there.",
+      importLabel:"Have a code from another device? Paste it here", importPh:"Paste the code here",
+      close:"Close", useCode:"Use this code", codeCopied:"Code copied",
+      enterValidCode:"Paste a valid code", loadingCode:"Loading this code's data…",
+      connected:"Connected — saving automatically", connectFail:"Couldn't connect to the database — retrying",
+      saveFail:"Couldn't save — will retry automatically", lastSaved:"Last saved",
+      connecting:"Connecting to the database…",
+      markDone:"Done", markNotDone:"Not done", pageTitle:"Masar — Progress log",
+      dateLocale:"en-US"
+    }
+  };
+  const LS_LANG = "masar_lang";
+  let lang = localStorage.getItem(LS_LANG) || "ar";
+  function t(key){ return (DICT[lang] && DICT[lang][key]) || DICT.ar[key] || key; }
+
+  function applyStaticText(){
+    document.getElementById("htmlRoot").setAttribute("lang", lang);
+    document.getElementById("htmlRoot").setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+    document.getElementById("pageTitle").textContent = t("pageTitle");
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el=>{
+      el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph")));
+    });
+    $("langBtn").textContent = lang === "ar" ? "EN" : "AR";
+  }
 
   // ---------- Supabase setup ----------
   const SUPABASE_URL = "https://ngoglampynbcyfzdovdw.supabase.co";
@@ -346,9 +429,7 @@
 
   let state = { weight_entries: [], habits: [] };
   let saveTimer = null;
-  let rowExists = false;
 
-  // ---------- DOM refs ----------
   const $ = id => document.getElementById(id);
   const syncDot = $("syncDot");
   const footerNote = $("footerNote");
@@ -361,11 +442,9 @@
   }
 
   function todayStr(){
-    const d = new Date();
-    return d.toISOString().slice(0,10);
+    return new Date().toISOString().slice(0,10);
   }
 
-  // ---------- Load & Save ----------
   async function loadData(){
     syncDot.className = "sync-dot saving";
     try{
@@ -374,17 +453,14 @@
       if (data){
         state.weight_entries = data.weight_entries || [];
         state.habits = data.habits || [];
-        rowExists = true;
-      } else {
-        rowExists = false;
       }
       syncDot.className = "sync-dot";
-      footerNote.textContent = "متصل — يُحفظ تلقائياً";
+      footerNote.textContent = t("connected");
       render();
     } catch(e){
       console.error(e);
       syncDot.className = "sync-dot err";
-      footerNote.textContent = "تعذّر الاتصال بقاعدة البيانات — سيُعاد المحاولة";
+      footerNote.textContent = t("connectFail");
       render();
     }
   }
@@ -405,18 +481,16 @@
       };
       const { error } = await sb.from("user_data").upsert(payload, { onConflict: "device_id" });
       if (error) throw error;
-      rowExists = true;
       syncDot.className = "sync-dot";
-      footerNote.textContent = "آخر حفظ: " + new Date().toLocaleTimeString("ar-DZ", {hour:"2-digit", minute:"2-digit"});
+      footerNote.textContent = t("lastSaved") + ": " + new Date().toLocaleTimeString(t("dateLocale"), {hour:"2-digit", minute:"2-digit"});
     } catch(e){
       console.error(e);
       syncDot.className = "sync-dot err";
-      footerNote.textContent = "تعذّر الحفظ — سيُعاد المحاولة تلقائياً";
+      footerNote.textContent = t("saveFail");
       saveTimer = setTimeout(saveNow, 4000);
     }
   }
 
-  // ---------- Weight ----------
   function sortedWeights(){
     return [...state.weight_entries].sort((a,b)=> a.date.localeCompare(b.date));
   }
@@ -425,7 +499,7 @@
     const entries = sortedWeights();
     const wrap = $("heroValueWrap");
     if (entries.length === 0){
-      wrap.innerHTML = `<div class="hero-empty">أضف أول قياس لوزنك لتبدأ رؤية تقدمك هنا.</div>`;
+      wrap.innerHTML = `<div class="hero-empty">${t("heroEmpty")}</div>`;
       $("sparkSvg").innerHTML = "";
       return;
     }
@@ -436,10 +510,10 @@
       const diff = +(last.weight - prev.weight).toFixed(1);
       const cls = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
       const arrow = diff > 0 ? "▲" : diff < 0 ? "▼" : "—";
-      deltaHtml = `<div class="delta-chip ${cls}">${arrow} ${Math.abs(diff)} كغ منذ آخر قياس</div>`;
+      deltaHtml = `<div class="delta-chip ${cls}">${arrow} ${Math.abs(diff)} ${t("kg")} ${t("sinceLast")}</div>`;
     }
     wrap.innerHTML = `
-      <div class="hero-value"><span class="num">${last.weight}</span><span class="unit">كغ</span></div>
+      <div class="hero-value"><span class="num">${last.weight}</span><span class="unit">${t("kg")}</span></div>
       ${deltaHtml}
     `;
     renderSpark(entries);
@@ -477,14 +551,14 @@
     const list = $("whList");
     const entries = [...sortedWeights()].reverse();
     if (entries.length === 0){
-      list.innerHTML = `<div class="hint">لا يوجد سجل بعد.</div>`;
+      list.innerHTML = `<div class="hint">${t("noHistory")}</div>`;
       return;
     }
     list.innerHTML = entries.map(e => `
       <div class="wh-row" data-date="${e.date}">
         <span class="d">${formatDate(e.date)}</span>
-        <span class="v">${e.weight} كغ</span>
-        <span class="del" data-del="${e.date}">حذف</span>
+        <span class="v">${e.weight} ${t("kg")}</span>
+        <span class="del" data-del="${e.date}">${t("delete")}</span>
       </div>
     `).join("");
     list.querySelectorAll("[data-del]").forEach(el=>{
@@ -498,22 +572,21 @@
 
   function formatDate(iso){
     const d = new Date(iso + "T00:00:00");
-    return d.toLocaleDateString("ar-DZ", { day:"numeric", month:"short", year:"numeric" });
+    return d.toLocaleDateString(t("dateLocale"), { day:"numeric", month:"short", year:"numeric" });
   }
 
   $("weightDate").value = todayStr();
   $("addWeightBtn").addEventListener("click", ()=>{
     const date = $("weightDate").value;
     const val = parseFloat($("weightVal").value);
-    if (!date || isNaN(val) || val <= 0){ toast("أدخل تاريخاً ووزناً صحيحين"); return; }
+    if (!date || isNaN(val) || val <= 0){ toast(t("enterValidDateWeight")); return; }
     state.weight_entries = state.weight_entries.filter(e=>e.date !== date);
     state.weight_entries.push({ date, weight: val });
     $("weightVal").value = "";
     render(); scheduleSave();
-    toast("تمت إضافة الوزن");
+    toast(t("weightAdded"));
   });
 
-  // ---------- Habits ----------
   function dateRange(start, end){
     const out = [];
     let d = new Date(start + "T00:00:00");
@@ -525,13 +598,52 @@
     return out;
   }
 
+  function closeDayPopover(){
+    const existing = document.querySelector(".day-popover");
+    if (existing) existing.remove();
+    document.removeEventListener("click", outsideClickCloser, true);
+  }
+  function outsideClickCloser(e){
+    const pop = document.querySelector(".day-popover");
+    if (pop && !pop.contains(e.target)) closeDayPopover();
+  }
+
+  function showDayPopover(box, habit, date){
+    closeDayPopover();
+    const pop = document.createElement("div");
+    pop.className = "day-popover";
+    pop.innerHTML = `
+      <button type="button" class="choice-done" data-choice="1">${t("markDone")}</button>
+      <button type="button" class="choice-undone" data-choice="0">${t("markNotDone")}</button>
+    `;
+    document.body.appendChild(pop);
+    const rect = box.getBoundingClientRect();
+    const popW = pop.offsetWidth, popH = pop.offsetHeight;
+    let left = rect.left + rect.width/2 - popW/2;
+    left = Math.max(8, Math.min(left, window.innerWidth - popW - 8));
+    let top = rect.top - popH - 8;
+    if (top < 8) top = rect.bottom + 8;
+    pop.style.left = left + "px";
+    pop.style.top = top + "px";
+    pop.querySelectorAll("button").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        habit.done = habit.done || {};
+        habit.done[date] = btn.getAttribute("data-choice") === "1";
+        closeDayPopover();
+        renderHabits(); scheduleSave();
+      });
+    });
+    setTimeout(()=> document.addEventListener("click", outsideClickCloser, true), 0);
+  }
+
   function renderHabits(){
     const container = $("habitsList");
     if (!state.habits || state.habits.length === 0){
       container.innerHTML = `
         <div class="glass empty-state">
           <div class="big">🌱</div>
-          اضغط + لإضافة أول عادة تريد متابعتها.
+          ${t("noHabitsText")}
         </div>`;
       return;
     }
@@ -542,17 +654,18 @@
       const pct = Math.round((doneCount/days.length)*100) || 0;
       const boxes = days.map(d=>{
         const dayNum = new Date(d + "T00:00:00").getDate();
-        const isDone = !!(h.done && h.done[d]);
+        const status = h.done ? h.done[d] : undefined; // true, false, or undefined (not answered yet)
         const isFuture = d > today;
         const isToday = d === today;
-        return `<div class="day-box ${isDone?"done":""} ${isFuture?"future":""} ${isToday?"today":""}"
+        const statusClass = status === true ? "done" : status === false ? "notdone" : "";
+        return `<div class="day-box ${statusClass} ${isFuture?"future":""} ${isToday?"today":""}"
                      data-habit="${h.id}" data-date="${d}" ${isFuture?"":"data-toggle=\"1\""}>${dayNum}</div>`;
       }).join("");
       return `
         <div class="glass habit-card">
           <div class="habit-head">
             <div class="habit-name">${escapeHtml(h.name)}</div>
-            <div class="habit-del" data-delhabit="${h.id}">حذف</div>
+            <div class="habit-del" data-delhabit="${h.id}">${t("delete")}</div>
           </div>
           <div class="habit-range">${formatDate(h.start)} → ${formatDate(h.end)}</div>
           <div class="habit-progress-wrap">
@@ -565,14 +678,13 @@
     }).join("");
 
     container.querySelectorAll("[data-toggle]").forEach(box=>{
-      box.addEventListener("click", ()=>{
+      box.addEventListener("click", (e)=>{
+        e.stopPropagation();
         const hid = box.getAttribute("data-habit");
         const date = box.getAttribute("data-date");
         const habit = state.habits.find(h=>h.id === hid);
         if (!habit) return;
-        habit.done = habit.done || {};
-        habit.done[date] = !habit.done[date];
-        renderHabits(); scheduleSave();
+        showDayPopover(box, habit, date);
       });
     });
     container.querySelectorAll("[data-delhabit]").forEach(el=>{
@@ -588,7 +700,6 @@
     return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   }
 
-  // Add habit modal
   const habitOverlay = $("habitOverlay");
   $("addHabitBtn").addEventListener("click", ()=>{
     $("habitName").value = "";
@@ -602,14 +713,13 @@
     const name = $("habitName").value.trim();
     const start = $("habitStart").value;
     const end = $("habitEnd").value;
-    if (!name || !start || !end || end < start){ toast("تحقق من الاسم والتواريخ"); return; }
+    if (!name || !start || !end || end < start){ toast(t("checkNameDates")); return; }
     state.habits.push({ id: uuid(), name, start, end, done:{} });
     habitOverlay.classList.remove("open");
     renderHabits(); scheduleSave();
-    toast("تمت إضافة العادة");
+    toast(t("habitAdded"));
   });
 
-  // Settings / sync modal
   const settingsOverlay = $("settingsOverlay");
   $("settingsBtn").addEventListener("click", ()=>{
     $("deviceCodeBox").textContent = deviceId;
@@ -619,26 +729,39 @@
   $("settingsClose").addEventListener("click", ()=> settingsOverlay.classList.remove("open"));
   settingsOverlay.addEventListener("click", e=>{ if (e.target === settingsOverlay) settingsOverlay.classList.remove("open"); });
   $("deviceCodeBox").addEventListener("click", ()=>{
-    navigator.clipboard?.writeText(deviceId).then(()=> toast("تم نسخ الرمز"));
+    navigator.clipboard?.writeText(deviceId).then(()=> toast(t("codeCopied")));
   });
   $("importCodeBtn").addEventListener("click", async ()=>{
     const code = $("importCode").value.trim();
-    if (!code){ toast("الصق رمزاً صحيحاً"); return; }
+    if (!code){ toast(t("enterValidCode")); return; }
     deviceId = code;
     localStorage.setItem(LS_KEY, deviceId);
     settingsOverlay.classList.remove("open");
-    toast("جاري تحميل بيانات هذا الرمز…");
+    toast(t("loadingCode"));
     await loadData();
   });
 
-  // ---------- Render all ----------
+  $("langBtn").addEventListener("click", ()=>{
+    lang = lang === "ar" ? "en" : "ar";
+    localStorage.setItem(LS_LANG, lang);
+    applyStaticText();
+    render();
+  });
+
   function render(){
     renderHero();
     renderWeightHistory();
     renderHabits();
   }
 
+  applyStaticText();
   loadData();
+
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("sw.js").catch(()=>{});
+    });
+  }
 })();
 </script>
 </body>
